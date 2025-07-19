@@ -536,23 +536,100 @@
             const data = sampleData[currentTab] || [];
             let filteredData = data;
 
-            // Apply network filter
-            if (activeFilters.network.length > 0) {
-                filteredData = filteredData.filter(item => 
-                    activeFilters.network.some(network => 
-                        item.network.toLowerCase().includes(network.toLowerCase())
-                    )
-                );
-            }
+            if (currentTab === 'internet') {
+                // Internet tab specific filtering
+                if (activeFilters.network.length > 0) {
+                    filteredData = filteredData.filter(item => 
+                        activeFilters.network.some(network => 
+                            item.network.toLowerCase().includes(network.toLowerCase())
+                        )
+                    );
+                }
 
-            // Apply price filter
-            filteredData = filteredData.filter(item => item.price <= activeFilters.price);
+                // Apply internet price filter
+                filteredData = filteredData.filter(item => item.price <= activeFilters.internetPrice);
 
-            // Apply unlimited filter
-            if (activeFilters.unlimited) {
-                filteredData = filteredData.filter(item => 
-                    item.data.toLowerCase().includes('unlimited')
-                );
+                // Apply internet data filter
+                if (activeFilters.internetUnlimited) {
+                    filteredData = filteredData.filter(item => 
+                        item.data.toLowerCase().includes('unlimited')
+                    );
+                } else {
+                    // Extract numeric value from data string and compare
+                    filteredData = filteredData.filter(item => {
+                        const dataStr = item.data.toLowerCase();
+                        if (dataStr.includes('unlimited')) return true;
+                        
+                        // Extract number from strings like "50GB", "100 GB", etc.
+                        const match = dataStr.match(/(\d+)/);
+                        if (match) {
+                            const dataValue = parseInt(match[1]);
+                            return dataValue <= activeFilters.internetData;
+                        }
+                        return true;
+                    });
+                }
+
+                // Apply speed filter (for internet packages with speed info)
+                filteredData = filteredData.filter(item => {
+                    // For now, all internet packages are included
+                    // You can add speed-based filtering when you have speed data
+                    return true;
+                });
+
+            } else {
+                // Default tab filtering (Voice, SMS, Data, MiFi)
+                if (activeFilters.network.length > 0) {
+                    filteredData = filteredData.filter(item => 
+                        activeFilters.network.some(network => 
+                            item.network.toLowerCase().includes(network.toLowerCase())
+                        )
+                    );
+                }
+
+                // Apply price filter
+                filteredData = filteredData.filter(item => item.price <= activeFilters.price);
+
+                // Apply data filter
+                if (!activeFilters.unlimited) {
+                    filteredData = filteredData.filter(item => {
+                        const dataStr = item.data.toLowerCase();
+                        if (dataStr.includes('unlimited')) return true;
+                        
+                        const match = dataStr.match(/(\d+)/);
+                        if (match) {
+                            const dataValue = parseInt(match[1]);
+                            return dataValue <= activeFilters.data;
+                        }
+                        return true;
+                    });
+                }
+
+                // Apply unlimited filter
+                if (activeFilters.unlimited) {
+                    filteredData = filteredData.filter(item => 
+                        item.data.toLowerCase().includes('unlimited')
+                    );
+                }
+
+                // Apply validity filter
+                if (activeFilters.validity.length > 0) {
+                    filteredData = filteredData.filter(item => 
+                        activeFilters.validity.some(validity => 
+                            item.validity.toLowerCase().includes(validity.toLowerCase())
+                        )
+                    );
+                }
+
+                // Apply area filter
+                if (activeFilters.area.length > 0) {
+                    filteredData = filteredData.filter(item => 
+                        activeFilters.area.some(area => 
+                            item.name.toLowerCase().includes(area.toLowerCase()) ||
+                            item.network.toLowerCase().includes(area.toLowerCase())
+                        )
+                    );
+                }
             }
 
             displayResults(filteredData);
@@ -565,19 +642,67 @@
             tbody.innerHTML = '';
             count.textContent = data.length;
 
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${currentTab === 'internet' ? '6' : '8'}" class="text-center py-8 text-gray-500">
+                            No packages found matching your criteria.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Update table headers based on tab
+            const thead = document.querySelector('thead tr');
+            if (currentTab === 'internet') {
+                thead.innerHTML = `
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Provider</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Package Name</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Speed</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Data</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Validity</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Price</th>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Network</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Package</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">On-Net</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Off-Net</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">SMS</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Data</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Validity</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Price</th>
+                `;
+            }
+
             data.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
-                row.innerHTML = `
-                    <td class="py-3 px-4 text-sm">${item.network}</td>
-                    <td class="py-3 px-4 text-sm font-medium">${item.name}</td>
-                    <td class="py-3 px-4 text-sm">${item.onNet}</td>
-                    <td class="py-3 px-4 text-sm">${item.offNet}</td>
-                    <td class="py-3 px-4 text-sm">${item.sms}</td>
-                    <td class="py-3 px-4 text-sm">${item.data}</td>
-                    <td class="py-3 px-4 text-sm">${item.validity}</td>
-                    <td class="py-3 px-4 text-sm font-semibold">Rs. ${item.price}</td>
-                `;
+                
+                if (currentTab === 'internet') {
+                    row.innerHTML = `
+                        <td class="py-3 px-4 text-sm">${item.network}</td>
+                        <td class="py-3 px-4 text-sm font-medium">${item.name}</td>
+                        <td class="py-3 px-4 text-sm">-</td>
+                        <td class="py-3 px-4 text-sm">${item.data}</td>
+                        <td class="py-3 px-4 text-sm">${item.validity}</td>
+                        <td class="py-3 px-4 text-sm font-semibold">Rs. ${item.price}</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td class="py-3 px-4 text-sm">${item.network}</td>
+                        <td class="py-3 px-4 text-sm font-medium">${item.name}</td>
+                        <td class="py-3 px-4 text-sm">${item.onNet}</td>
+                        <td class="py-3 px-4 text-sm">${item.offNet}</td>
+                        <td class="py-3 px-4 text-sm">${item.sms}</td>
+                        <td class="py-3 px-4 text-sm">${item.data}</td>
+                        <td class="py-3 px-4 text-sm">${item.validity}</td>
+                        <td class="py-3 px-4 text-sm font-semibold">Rs. ${item.price}</td>
+                    `;
+                }
+                
                 tbody.appendChild(row);
             });
         }
