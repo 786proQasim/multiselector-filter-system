@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiselector Filter System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-tag {
+            transition: all 0.2s ease;
+        }
+        .filter-tag.active {
+            background-color: #14b8a6;
+            color: white;
+            border-color: #14b8a6;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .toggle-switch.active {
+            background-color: #14b8a6;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            outline: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #14b8a6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .range-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #14b8a6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .filter-section {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 0;
+        }
+        .filter-section:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Plan Finder</h1>
+        
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="flex border-b">
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium text-gray-700 hover:text-teal-600 border-b-2 border-transparent" data-tab="voice">
+                    Voice
+                </button>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium text-gray-700 hover:text-teal-600 border-b-2 border-transparent" data-tab="sms">
+                    SMS
+                </button>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium text-gray-700 hover:text-teal-600 border-b-2 border-transparent" data-tab="data">
+                    Data
+                </button>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium text-gray-700 hover:text-teal-600 border-b-2 border-transparent" data-tab="mifi">
+                    MiFi / Dongles
+                </button>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium text-gray-700 hover:text-teal-600 border-b-2 border-teal-600 text-teal-600 active" data-tab="internet">
+                    Internet
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Filters Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+                    
+                    <!-- Default Filters (Voice, SMS, Data, MiFi) -->
+                    <div id="defaultFilters" style="display: none;">
+                        <!-- Network Filter -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Network</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="jazz">Jazz</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="telenor">Telenor</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="ufone">Ufone</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="zong">Zong</button>
+                            </div>
+                        </div>
+
+                        <!-- On/Off Net Toggle -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Call Type</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">On Net</span>
+                                    <div class="toggle-switch" data-filter="onnet"></div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Off Net</span>
+                                    <div class="toggle-switch" data-filter="offnet"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validity Filter -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Validity</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="validity" data-value="daily">Daily</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="validity" data-value="weekly">Weekly</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="validity" data-value="monthly">Monthly</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="validity" data-value="2hours">2 Hours</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="validity" data-value="2days">2 Days</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="validity" data-value="3days">3 Days</button>
+                            </div>
+                        </div>
+
+                        <!-- Coverage Area -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Coverage Area</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="lahore">Lahore</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="karachi">Karachi</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="islamabad">Islamabad</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="rawalpindi">Rawalpindi</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="multan">Multan</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="faisalabad">Faisalabad</button>
+                            </div>
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Price Range</h4>
+                            <div class="space-y-2">
+                                <input type="range" class="range-slider w-full" id="priceRange" min="0" max="1000" value="500">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>Rs. 0</span>
+                                    <span id="priceValue">Rs. 500</span>
+                                    <span>Rs. 1000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Range -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Data (GB)</h4>
+                            <div class="space-y-2">
+                                <input type="range" class="range-slider w-full" id="dataRange" min="0" max="100" value="50">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>0 GB</span>
+                                    <span id="dataValue">50 GB</span>
+                                    <span>100 GB</span>
+                                </div>
+                            </div>
+                        <!-- Unlimited Checkbox -->
+                        <div class="filter-section">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="unlimitedCheck" class="mr-2 text-teal-600">
+                                <span class="text-sm text-gray-700">Unlimited</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Internet Tab Specific Filters -->
+                    <div id="internetFilters" style="display: block;">
+                        <!-- Network Filter for Internet -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Network</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="ptcl">PTCL</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="nayatel">NAYATEL</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="fiberlink">FIBERLINK</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="optix">OPTIX</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="qubee">QUBEE</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="stormfiber">STORMFIBER</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="wi-tribe">WI-TRIBE</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="network" data-value="world-call">WORLD CALL</button>
+                            </div>
+                        </div>
+
+                        <!-- Speed Range -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Speed (Mbps)</h4>
+                            <div class="space-y-2">
+                                <input type="range" class="range-slider w-full" id="speedRange" min="1" max="150" value="150">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>1</span>
+                                    <span>10</span>
+                                    <span>20</span>
+                                    <span>30</span>
+                                    <span>40</span>
+                                    <span>50</span>
+                                    <span>100</span>
+                                    <span id="speedValue">150</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coverage Area for Internet -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Coverage Area</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="abbottabad">ABBOTTABAD</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="all">ALL</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="bhalwalpur">BHALWALPUR</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="chiniot">CHINIOT</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="faisalabad">FAISALABAD</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="farooqabad">FAROOQABAD</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="gujranwala">GUJRANWALA</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="gujrat">GUJRAT</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="hasilpur">HASILPUR</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="hyderabad">HYDERABAD</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="islamabad">ISLAMABAD</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="karachi">KARACHI</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="kashmir">KASHMIR</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="kashmore">KASHMORE</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="lahore">LAHORE</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="malakand">MALAKAND</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="multan">MULTAN</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="okara">OKARA</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="peshawar">PESHAWAR</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="punjab">PUNJAB</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="qambar">QAMBAR</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="quetta">QUETTA</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="rawalpindi">RAWALPINDI</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="sahiwal">SAHIWAL</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="sanghar">SANGHAR</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="sargodha">SARGODHA</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="sehwan">SEHWAN</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="sialkot">SIALKOT</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="thul">THUL</button>
+                                <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="wah">WAH</button>
+                            </div>
+                        </div>
+
+                        <!-- Data Range for Internet -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Data (GBs)</h4>
+                            <div class="space-y-2">
+                                <input type="range" class="range-slider w-full" id="internetDataRange" min="1" max="300" value="300">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>1</span>
+                                    <span>25</span>
+                                    <span>50</span>
+                                    <span>100</span>
+                                    <span>150</span>
+                                    <span id="internetDataValue">300</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unlimited Checkbox for Internet -->
+                        <div class="filter-section">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="internetUnlimitedCheck" class="mr-2 text-teal-600">
+                                <span class="text-sm text-gray-700">Unlimited?</span>
+                            </label>
+                        </div>
+
+                        <!-- Price Range for Internet -->
+                        <div class="filter-section">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Price</h4>
+                            <div class="space-y-2">
+                                <input type="range" class="range-slider w-full" id="internetPriceRange" min="0" max="15000" value="15000">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>0</span>
+                                    <span>1000</span>
+                                    <span>2000</span>
+                                    <span>5000</span>
+                                    <span>10000</span>
+                                    <span id="internetPriceValue">15000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clear Filters -->
+                    <button id="clearFilters" class="w-full py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        Clear All Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Results</h3>
+                        <div class="text-sm text-gray-600">
+                            <span id="resultsCount">0</span> packages found
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Network</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Package</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">On-Net</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Off-Net</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">SMS</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Data</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Validity</th>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTable">
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for demonstration
+        const sampleData = {
+            voice: [
+                { network: 'Jazz', name: 'Jazz Super Bundle', onNet: '1000', offNet: '100', sms: '1000', data: '2GB', validity: 'Monthly', price: 500 },
+                { network: 'Telenor', name: 'Telenor Easy Card', onNet: '500', offNet: '50', sms: '500', data: '1GB', validity: 'Monthly', price: 350 },
+                { network: 'Zong', name: 'Zong Super Card', onNet: '2000', offNet: '200', sms: '2000', data: '4GB', validity: 'Monthly', price: 650 },
+                { network: 'Ufone', name: 'Ufone Super Card', onNet: '1500', offNet: '150', sms: '1500', data: '3GB', validity: 'Monthly', price: 550 }
+            ],
+            sms: [
+                { network: 'Jazz', name: 'Jazz SMS Bundle', onNet: '0', offNet: '0', sms: '10000', data: '0GB', validity: 'Monthly', price: 100 },
+                { network: 'Telenor', name: 'Telenor SMS Package', onNet: '0', offNet: '0', sms: '5000', data: '0GB', validity: 'Weekly', price: 50 }
+            ],
+            data: [
+                { network: 'Jazz', name: 'Jazz 4G Package', onNet: '0', offNet: '0', sms: '0', data: '10GB', validity: 'Monthly', price: 300 },
+                { network: 'Zong', name: 'Zong 4G Package', onNet: '0', offNet: '0', sms: '0', data: '20GB', validity: 'Monthly', price: 500 }
+            ],
+            mifi: [
+                { network: 'Jazz', name: 'Jazz 4G Device', onNet: '0', offNet: '0', sms: '0', data: '50GB', validity: 'Monthly', price: 2000 },
+                { network: 'Zong', name: 'Zong 4G Device', onNet: '0', offNet: '0', sms: '0', data: '100GB', validity: 'Monthly', price: 3000 }
+            ],
+            internet: [
+                { network: 'PTCL', name: 'PTCL Broadband', onNet: '0', offNet: '0', sms: '0', data: 'Unlimited', validity: 'Monthly', price: 2500 },
+                { network: 'StormFiber', name: 'StormFiber', onNet: '0', offNet: '0', sms: '0', data: 'Unlimited', validity: 'Monthly', price: 3000 }
+            ]
+        };
+
+        let activeFilters = {
+            network: [],
+            onnet: false,
+            offnet: false,
+            validity: [],
+            area: [],
+            price: 1000,
+            data: 100,
+            unlimited: false,
+            speed: 150,
+            internetData: 300,
+            internetPrice: 15000,
+            internetUnlimited: false
+        };
+
+        let currentTab = 'internet';
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-teal-600', 'text-teal-600'));
+                e.target.classList.add('active', 'border-teal-600', 'text-teal-600');
+                currentTab = e.target.dataset.tab;
+                
+                // Show/hide appropriate filters
+                const defaultFilters = document.getElementById('defaultFilters');
+                const internetFilters = document.getElementById('internetFilters');
+                
+                if (currentTab === 'internet') {
+                    defaultFilters.style.display = 'none';
+                    internetFilters.style.display = 'block';
+                } else {
+                    defaultFilters.style.display = 'block';
+                    internetFilters.style.display = 'none';
+                }
+                
+                applyFilters();
+            });
+        });
+
+        // Filter tags
+        document.querySelectorAll('.filter-tag').forEach(tag => {
+            tag.addEventListener('click', (e) => {
+                const filterType = e.target.dataset.filter;
+                const filterValue = e.target.dataset.value;
+                
+                e.target.classList.toggle('active');
+                
+                if (activeFilters[filterType].includes(filterValue)) {
+                    activeFilters[filterType] = activeFilters[filterType].filter(v => v !== filterValue);
+                } else {
+                    activeFilters[filterType].push(filterValue);
+                }
+                
+                applyFilters();
+            });
+        });
+
+        // Toggle switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                const filterType = e.target.dataset.filter;
+                e.target.classList.toggle('active');
+                activeFilters[filterType] = e.target.classList.contains('active');
+                applyFilters();
+            });
+        });
+
+        // Range sliders
+        document.getElementById('priceRange').addEventListener('input', (e) => {
+            activeFilters.price = parseInt(e.target.value);
+            document.getElementById('priceValue').textContent = `Rs. ${e.target.value}`;
+            applyFilters();
+        });
+
+        document.getElementById('dataRange').addEventListener('input', (e) => {
+            activeFilters.data = parseInt(e.target.value);
+            document.getElementById('dataValue').textContent = `${e.target.value} GB`;
+            applyFilters();
+        });
+
+        // Internet-specific range sliders
+        document.getElementById('speedRange').addEventListener('input', (e) => {
+            activeFilters.speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = e.target.value;
+            applyFilters();
+        });
+
+        document.getElementById('internetDataRange').addEventListener('input', (e) => {
+            activeFilters.internetData = parseInt(e.target.value);
+            document.getElementById('internetDataValue').textContent = e.target.value;
+            applyFilters();
+        });
+
+        document.getElementById('internetPriceRange').addEventListener('input', (e) => {
+            activeFilters.internetPrice = parseInt(e.target.value);
+            document.getElementById('internetPriceValue').textContent = e.target.value;
+            applyFilters();
+        });
+
+        // Unlimited checkbox
+        document.getElementById('unlimitedCheck').addEventListener('change', (e) => {
+            activeFilters.unlimited = e.target.checked;
+            applyFilters();
+        });
+
+        // Internet unlimited checkbox
+        document.getElementById('internetUnlimitedCheck').addEventListener('change', (e) => {
+            activeFilters.internetUnlimited = e.target.checked;
+            applyFilters();
+        });
+
+        // Clear filters
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            activeFilters = {
+                network: [],
+                onnet: false,
+                offnet: false,
+                validity: [],
+                area: [],
+                price: 1000,
+                data: 100,
+                unlimited: false,
+                speed: 150,
+                internetData: 300,
+                internetPrice: 15000,
+                internetUnlimited: false
+            };
+            
+            document.querySelectorAll('.filter-tag').forEach(tag => tag.classList.remove('active'));
+            document.querySelectorAll('.toggle-switch').forEach(toggle => toggle.classList.remove('active'));
+            document.getElementById('priceRange').value = 1000;
+            document.getElementById('dataRange').value = 100;
+            document.getElementById('unlimitedCheck').checked = false;
+            document.getElementById('priceValue').textContent = 'Rs. 1000';
+            document.getElementById('dataValue').textContent = '100 GB';
+            
+            // Reset internet-specific filters
+            document.getElementById('speedRange').value = 150;
+            document.getElementById('internetDataRange').value = 300;
+            document.getElementById('internetPriceRange').value = 15000;
+            document.getElementById('internetUnlimitedCheck').checked = false;
+            document.getElementById('speedValue').textContent = '150';
+            document.getElementById('internetDataValue').textContent = '300';
+            document.getElementById('internetPriceValue').textContent = '15000';
+            
+            applyFilters();
+        });
+
+        function applyFilters() {
+            const data = sampleData[currentTab] || [];
+            let filteredData = data;
+
+            // Apply network filter
+            if (activeFilters.network.length > 0) {
+                filteredData = filteredData.filter(item => 
+                    activeFilters.network.some(network => 
+                        item.network.toLowerCase().includes(network.toLowerCase())
+                    )
+                );
+            }
+
+            // Apply price filter
+            filteredData = filteredData.filter(item => item.price <= activeFilters.price);
+
+            // Apply unlimited filter
+            if (activeFilters.unlimited) {
+                filteredData = filteredData.filter(item => 
+                    item.data.toLowerCase().includes('unlimited')
+                );
+            }
+
+            displayResults(filteredData);
+        }
+
+        function displayResults(data) {
+            const tbody = document.getElementById('resultsTable');
+            const count = document.getElementById('resultsCount');
+            
+            tbody.innerHTML = '';
+            count.textContent = data.length;
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-sm">${item.network}</td>
+                    <td class="py-3 px-4 text-sm font-medium">${item.name}</td>
+                    <td class="py-3 px-4 text-sm">${item.onNet}</td>
+                    <td class="py-3 px-4 text-sm">${item.offNet}</td>
+                    <td class="py-3 px-4 text-sm">${item.sms}</td>
+                    <td class="py-3 px-4 text-sm">${item.data}</td>
+                    <td class="py-3 px-4 text-sm">${item.validity}</td>
+                    <td class="py-3 px-4 text-sm font-semibold">Rs. ${item.price}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Initialize
+        applyFilters();
+    </script>
+</body>
+</html>
