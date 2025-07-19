@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Packages Finder - Pakistan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-tag {
+            transition: all 0.2s ease;
+        }
+        .filter-tag.active {
+            background-color: #14b8a6;
+            color: white;
+            border-color: #14b8a6;
+        }
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            outline: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #14b8a6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .range-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #14b8a6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        .filter-section {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 0;
+        }
+        .filter-section:last-child {
+            border-bottom: none;
+        }
+        .package-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        .package-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Internet Packages Finder</h1>
+        <p class="text-gray-600 mb-8">Find the best internet packages from all providers in Pakistan</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Filters Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+                    
+                    <!-- Network/Provider Filter -->
+                    <div class="filter-section">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Network</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="ptcl">PTCL</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="nayatel">NAYATEL</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="fiberlink">FIBERLINK</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="optix">OPTIX</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="qubee">QUBEE</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="stormfiber">STORMFIBER</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="wi-tribe">WI-TRIBE</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="provider" data-value="world-call">WORLD CALL</button>
+                        </div>
+                    </div>
+
+                    <!-- Speed Range -->
+                    <div class="filter-section">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Speed (Mbps)</h4>
+                        <div class="space-y-2">
+                            <input type="range" class="range-slider w-full" id="speedRange" min="1" max="150" value="150">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>1</span>
+                                <span>10</span>
+                                <span>20</span>
+                                <span>30</span>
+                                <span>40</span>
+                                <span>50</span>
+                                <span>100</span>
+                                <span id="speedValue">150</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coverage Area -->
+                    <div class="filter-section">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Coverage Area</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="abbottabad">ABBOTTABAD</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="all">ALL</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="bhalwalpur">BHALWALPUR</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="chiniot">CHINIOT</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="faisalabad">FAISALABAD</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="farooqabad">FAROOQABAD</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="gujranwala">GUJRANWALA</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="gujrat">GUJRAT</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="hasilpur">HASILPUR</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="hyderabad">HYDERABAD</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="islamabad">ISLAMABAD</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area" data-value="karachi">KARACHI</button>
+                            <button class="filter-tag px-3 py-1 text-sm border border-gray-300 rounded-full" data-filter="area"
